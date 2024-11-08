@@ -1,8 +1,8 @@
-
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
 #include <string>
+#include <stdexcept>
 
 class Account {
 public:
@@ -10,6 +10,7 @@ public:
     Account(const std::string& userId, const std::string& password);
 
     std::string getUserId() const;
+    std::string getPassword() const;
     float getBalance() const;
     void deposit(float amount);
     bool withdraw(float amount);

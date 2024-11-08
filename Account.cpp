@@ -1,5 +1,8 @@
 #include "Account.h"
+#include <iostream>
+#include <fstream>
 #include <stdexcept>
+#include <stdlib.h>
 
 Account::Account() : userId(""), password(""), balance(0.0f) {}
 
@@ -8,6 +11,10 @@ Account::Account(const std::string& userId, const std::string& password)
 
 std::string Account::getUserId() const {
     return userId;
+}
+
+std::string Account::getPassword() const {
+    return password;
 }
 
 float Account::getBalance() const {

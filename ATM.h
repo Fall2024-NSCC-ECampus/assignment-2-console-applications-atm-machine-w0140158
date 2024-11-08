@@ -11,7 +11,8 @@ public:
     void start();
 
 private:
-    void printMenu();
+    void printIntroMenu();
+    void printMainMenu();
     void login();
     void createAccount();
     Account* findAccount(const std::string& userId);
