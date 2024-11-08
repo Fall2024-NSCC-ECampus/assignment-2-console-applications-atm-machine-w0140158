@@ -88,7 +88,7 @@ void ATM::login() {
             }
         } while (action != 'q');
 
-        currentAccount = nullptr; // Logout
+        currentAccount = nullptr;
     } else {
         std::cout << "Invalid login." << std::endl;
     }
@@ -104,9 +104,9 @@ void ATM::createAccount() {
     if (findAccount(userId) != nullptr) {
         std::cout << "Account already exists!" << std::endl;
     } else {
-        accounts.emplace_back(userId, password); // Create a new account
+        accounts.emplace_back(userId, password);
         try {
-            saveAccountsToFile(); // Save accounts to file
+            saveAccountsToFile();
             std::cout << "Account created!" << std::endl;
         } catch (const std::exception& e) {
             std::cerr << "Error saving account: " << e.what() << std::endl;
@@ -117,10 +117,10 @@ void ATM::createAccount() {
 Account* ATM::findAccount(const std::string& userId) {
     for (auto& account : accounts) {
         if (account.getUserId() == userId) {
-            return &account; // Return a pointer to the found account
+            return &account;
         }
     }
-    return nullptr; // Account not found
+    return nullptr;
 }
 
 // Save accounts to a text file
@@ -132,7 +132,7 @@ void ATM::saveAccountsToFile() {
 
     for (const auto& account : accounts) {
         outFile << account.getUserId() << " "
-                << account.getBalance() << "\n"; // Save user ID and balance only
+                << account.getBalance() << "\n";
     }
 
     if (!outFile) {
