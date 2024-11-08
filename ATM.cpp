@@ -1,30 +1,39 @@
 #include "ATM.h"
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 
 ATM::ATM() : currentAccount(nullptr) {
-    loadAccountsFromFile(); // Load accounts when ATM starts
+    try {
+        loadAccountsFromFile();
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading accounts: " << e.what() << std::endl;
+    }
 }
 
 void ATM::start() {
     char option;
 
     do {
-        printMenu();
-        std::cin >> option;
+        try {
+            printMenu();
+            std::cin >> option;
 
-        switch (option) {
-            case 'l':
-                login();
-                break;
-            case 'c':
-                createAccount();
-                break;
-            case 'q':
-                std::cout << "Goodbye!" << std::endl;
-                break;
-            default:
-                std::cout << "Invalid option. Try again." << std::endl;
+            switch (option) {
+                case 'l':
+                    login();
+                    break;
+                case 'c':
+                    createAccount();
+                    break;
+                case 'q':
+                    std::cout << "Goodbye!" << std::endl;
+                    break;
+                default:
+                    std::cout << "Invalid option. Try again." << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
         }
     } while (option != 'q');
 }
@@ -55,21 +64,27 @@ void ATM::login() {
             std::cout << "d - Deposit, w - Withdraw, q - Logout\n> ";
             std::cin >> action;
 
-            if (action == 'd') {
-                float amount;
-                std::cout << "Deposit amount: ";
-                std::cin >> amount;
-                currentAccount->deposit(amount);
-                std::cout << "New balance: $" << currentAccount->getBalance() << std::endl;
-            } else if (action == 'w') {
-                float amount;
-                std::cout << "Withdraw amount: ";
-                std::cin >> amount;
-                if (currentAccount->withdraw(amount)) {
+            try {
+                if (action == 'd') {
+                    float amount;
+                    std::cout << "Deposit amount: ";
+                    std::cin >> amount;
+                    currentAccount->deposit(amount);
+                    saveAccountsToFile(); // Save after deposit
                     std::cout << "New balance: $" << currentAccount->getBalance() << std::endl;
-                } else {
-                    std::cout << "Insufficient funds!" << std::endl;
+                } else if (action == 'w') {
+                    float amount;
+                    std::cout << "Withdraw amount: ";
+                    std::cin >> amount;
+                    if (currentAccount->withdraw(amount)) {
+                        saveAccountsToFile(); // Save after withdrawal
+                        std::cout << "New balance: $" << currentAccount->getBalance() << std::endl;
+                    } else {
+                        std::cout << "Insufficient funds!" << std::endl;
+                    }
                 }
+            } catch (const std::exception& e) {
+                std::cerr << "Error: " << e.what() << std::endl;
             }
         } while (action != 'q');
 
@@ -90,8 +105,12 @@ void ATM::createAccount() {
         std::cout << "Account already exists!" << std::endl;
     } else {
         accounts.emplace_back(userId, password); // Create a new account
-        saveAccountsToFile(); // Save accounts to file
-        std::cout << "Account created!" << std::endl;
+        try {
+            saveAccountsToFile(); // Save accounts to file
+            std::cout << "Account created!" << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "Error saving account: " << e.what() << std::endl;
+        }
     }
 }
 
@@ -108,13 +127,16 @@ Account* ATM::findAccount(const std::string& userId) {
 void ATM::saveAccountsToFile() {
     std::ofstream outFile("accounts.txt", std::ios::trunc);
     if (!outFile) {
-        std::cerr << "Error opening accounts.txt for writing!" << std::endl;
-        return;
+        throw std::ios_base::failure("Error opening accounts.txt for writing.");
     }
 
     for (const auto& account : accounts) {
         outFile << account.getUserId() << " "
                 << account.getBalance() << "\n"; // Save user ID and balance only
+    }
+
+    if (!outFile) {
+        throw std::ios_base::failure("Error occurred while writing to accounts.txt.");
     }
 
     std::cout << "Accounts saved to file successfully." << std::endl;
@@ -124,8 +146,7 @@ void ATM::saveAccountsToFile() {
 void ATM::loadAccountsFromFile() {
     std::ifstream inFile("accounts.txt");
     if (!inFile) {
-        std::cout << "No existing accounts found. A new file will be created." << std::endl;
-        return;
+        throw std::ios_base::failure("Error opening accounts.txt for reading.");
     }
 
     std::string userId;
@@ -135,6 +156,10 @@ void ATM::loadAccountsFromFile() {
         Account account(userId, "");
         account.deposit(balance);
         accounts.push_back(account);
+    }
+
+    if (!inFile.eof() && inFile.fail()) {
+        throw std::ios_base::failure("Error occurred while reading from accounts.txt.");
     }
 
     std::cout << "Accounts loaded from file successfully." << std::endl;
